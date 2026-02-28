@@ -26,13 +26,13 @@ openssl req -x509 -nodes -newkey rsa:2048 \
   -keyout infra/haproxy/certs/ytm.key \
   -out infra/haproxy/certs/ytm.crt \
   -days 365 \
-  -subj "/CN=ytm.blueowlsystems.com"
+  -subj "/CN=your-domain.example"
 cat infra/haproxy/certs/ytm.key infra/haproxy/certs/ytm.crt > infra/haproxy/certs/ytm.pem
 ```
 
 3. For domain-based OAuth, set:
-- `NEXT_PUBLIC_APP_URL=https://ytm.blueowlsystems.com`
-- `GOOGLE_REDIRECT_URI=https://ytm.blueowlsystems.com/api/auth/google/callback`
+- `NEXT_PUBLIC_APP_URL=https://your-domain.example`
+- `GOOGLE_REDIRECT_URI=https://your-domain.example/api/auth/google/callback`
 
 4. Run:
 
@@ -40,7 +40,7 @@ cat infra/haproxy/certs/ytm.key infra/haproxy/certs/ytm.crt > infra/haproxy/cert
 docker compose up --build
 ```
 
-5. Open `https://ytm.blueowlsystems.com/setup`.
+5. Open `https://your-domain.example/setup`.
 6. Sign in with Google, add creators/rules, then run manual sync from dashboard.
 
 ## Scripts

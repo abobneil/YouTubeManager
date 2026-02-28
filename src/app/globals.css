@@ -281,7 +281,7 @@ th {
 }
 
 .mono {
-  font-family: var(--font-app-mono), monospace;
+  font-family: var(--font-app-sans), sans-serif;
   font-size: 0.82rem;
 }
 

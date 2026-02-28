@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Roboto } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
 
 const appSans = Roboto({
   variable: "--font-app-sans",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
-  display: "swap",
-});
-
-const appMono = JetBrains_Mono({
-  variable: "--font-app-mono",
-  subsets: ["latin"],
   display: "swap",
 });
 
@@ -27,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${appSans.variable} ${appMono.variable}`}>
+      <body className={appSans.variable}>
         {children}
       </body>
     </html>

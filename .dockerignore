@@ -1,0 +1,8 @@
+.next
+node_modules
+coverage
+.git
+.gitignore
+README.md
+research.md
+*.log

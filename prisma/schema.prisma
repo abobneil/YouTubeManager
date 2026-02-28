@@ -1,0 +1,247 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MatchFields {
+  TITLE
+  DESCRIPTION
+  BOTH
+}
+
+enum OrderMode {
+  NEWEST
+  OLDEST
+}
+
+enum PrivacyStatus {
+  PRIVATE
+  UNLISTED
+}
+
+enum SyncRunStatus {
+  RUNNING
+  SUCCEEDED
+  PARTIAL
+  FAILED
+  SKIPPED_CONCURRENT
+}
+
+enum SyncTrigger {
+  MANUAL
+  SCHEDULED
+}
+
+enum SyncEventLevel {
+  INFO
+  WARNING
+  ERROR
+}
+
+enum MembershipStatus {
+  INSERTED
+  DUPLICATE
+  ERROR
+}
+
+enum SyncRequestStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
+model OwnerAccount {
+  id          String     @id @default("owner")
+  googleSub   String     @unique @map("google_sub")
+  email       String
+  displayName String?    @map("display_name")
+  pictureUrl  String?    @map("picture_url")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  oauthToken  OAuthToken?
+
+  @@map("owner_accounts")
+}
+
+model OAuthToken {
+  id                    String       @id @default(cuid())
+  ownerId               String       @unique @map("owner_id")
+  encryptedAccessToken  String       @map("encrypted_access_token")
+  encryptedRefreshToken String       @map("encrypted_refresh_token")
+  expiresAt             DateTime     @map("expires_at")
+  scopes                String[]
+  tokenType             String?      @map("token_type")
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+  owner                 OwnerAccount @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("oauth_tokens")
+}
+
+model Creator {
+  id                 String       @id @default(cuid())
+  channelId          String       @unique @map("channel_id")
+  displayName        String       @map("display_name")
+  uploadsPlaylistId  String?      @map("uploads_playlist_id")
+  active             Boolean      @default(true)
+  lastCheckedAt      DateTime?    @map("last_checked_at")
+  lastSeenPublishedAt DateTime?   @map("last_seen_published_at")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+  ruleCreators       RuleCreator[]
+  videos             Video[]
+
+  @@map("creators")
+}
+
+model TopicRule {
+  id              String               @id @default(cuid())
+  name            String
+  includeKeywords String[]             @map("include_keywords")
+  excludeKeywords String[]             @map("exclude_keywords")
+  matchFields     MatchFields          @default(BOTH) @map("match_fields")
+  caseSensitive   Boolean              @default(false) @map("case_sensitive")
+  orderMode       OrderMode            @default(NEWEST) @map("order_mode")
+  privacyStatus   PrivacyStatus        @default(PRIVATE) @map("privacy_status")
+  active          Boolean              @default(true)
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+  ruleCreators    RuleCreator[]
+  managedPlaylist ManagedPlaylist?
+  videoMatches    VideoMatch[]
+  memberships     PlaylistMembership[]
+
+  @@map("topic_rules")
+}
+
+model RuleCreator {
+  id        String   @id @default(cuid())
+  ruleId    String   @map("rule_id")
+  creatorId String   @map("creator_id")
+  rule      TopicRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  creator   Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleId, creatorId])
+  @@map("rule_creators")
+}
+
+model ManagedPlaylist {
+  id               String       @id @default(cuid())
+  ruleId           String       @unique @map("rule_id")
+  youtubePlaylistId String      @map("youtube_playlist_id")
+  title            String
+  privacyStatus    PrivacyStatus @map("privacy_status")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  rule             TopicRule    @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@map("managed_playlists")
+}
+
+model Video {
+  id                String               @id
+  title             String
+  description       String
+  publishedAt       DateTime             @map("published_at")
+  channelId         String               @map("channel_id")
+  channelTitle      String               @map("channel_title")
+  discoveredFromCreatorId String?        @map("discovered_from_creator_id")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  discoveredFromCreator Creator?         @relation(fields: [discoveredFromCreatorId], references: [id], onDelete: SetNull)
+  matches           VideoMatch[]
+  memberships       PlaylistMembership[]
+
+  @@index([publishedAt], map: "videos_published_at_idx")
+  @@map("videos")
+}
+
+model VideoMatch {
+  id        String   @id @default(cuid())
+  ruleId    String   @map("rule_id")
+  videoId   String   @map("video_id")
+  matchedAt DateTime @default(now()) @map("matched_at")
+  rule      TopicRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([ruleId, videoId])
+  @@map("video_matches")
+}
+
+model PlaylistMembership {
+  id                    String           @id @default(cuid())
+  ruleId                String           @map("rule_id")
+  videoId               String           @map("video_id")
+  runId                 String?          @map("run_id")
+  status                MembershipStatus @default(INSERTED)
+  youtubePlaylistItemId String?          @map("youtube_playlist_item_id")
+  errorCode             String?          @map("error_code")
+  attemptedAt           DateTime         @default(now()) @map("attempted_at")
+  rule                  TopicRule        @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  video                 Video            @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  run                   SyncRun?         @relation(fields: [runId], references: [id], onDelete: SetNull)
+
+  @@unique([ruleId, videoId])
+  @@map("playlist_memberships")
+}
+
+model SyncRun {
+  id             String          @id @default(cuid())
+  trigger        SyncTrigger
+  status         SyncRunStatus
+  requestId      String?         @map("request_id")
+  startedAt      DateTime        @default(now()) @map("started_at")
+  endedAt        DateTime?       @map("ended_at")
+  stats          Json?
+  errorSummary   String?         @map("error_summary")
+  quotaEstimated Int             @default(0) @map("quota_estimated")
+  quotaConsumed  Int             @default(0) @map("quota_consumed")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  events         SyncRunEvent[]
+  memberships    PlaylistMembership[]
+  request        SyncRequest?    @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  @@index([startedAt], map: "sync_runs_started_at_idx")
+  @@index([status], map: "sync_runs_status_idx")
+  @@map("sync_runs")
+}
+
+model SyncRunEvent {
+  id        String         @id @default(cuid())
+  runId     String         @map("run_id")
+  level     SyncEventLevel
+  code      String
+  message   String
+  context   Json?
+  createdAt DateTime       @default(now()) @map("created_at")
+  run       SyncRun        @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, createdAt], map: "sync_run_events_run_id_created_at_idx")
+  @@map("sync_run_events")
+}
+
+model SyncRequest {
+  id          String            @id @default(cuid())
+  trigger     SyncTrigger       @default(MANUAL)
+  status      SyncRequestStatus @default(PENDING)
+  requestedAt DateTime          @default(now()) @map("requested_at")
+  pickedAt    DateTime?         @map("picked_at")
+  completedAt DateTime?         @map("completed_at")
+  run         SyncRun[]
+
+  @@index([status, requestedAt], map: "sync_requests_status_requested_at_idx")
+  @@map("sync_requests")
+}
+
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("app_settings")
+}

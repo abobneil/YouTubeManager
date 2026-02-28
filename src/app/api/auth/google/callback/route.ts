@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { env } from "@/lib/config";
 import { prisma } from "@/lib/db";
 import { decrypt } from "@/lib/crypto";
 import { HttpError } from "@/lib/errors";
@@ -54,10 +55,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
 
     await setSessionOwnerId("owner");
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/dashboard", env.NEXT_PUBLIC_APP_URL));
   } catch (error) {
     const message = error instanceof Error ? error.message : "OAuth flow failed";
-    const url = new URL("/setup", request.url);
+    const url = new URL("/setup", env.NEXT_PUBLIC_APP_URL);
     url.searchParams.set("error", message);
     return NextResponse.redirect(url);
   }

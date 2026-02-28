@@ -13,19 +13,35 @@ Self-hosted TypeScript web app for a single owner account that:
 - Next.js (App Router) + TypeScript
 - PostgreSQL + Prisma ORM
 - Node worker with `node-cron`
-- Docker Compose (`web`, `worker`, `postgres`)
+- Docker Compose (`web`, `worker`, `postgres`, `haproxy`)
 
 ## Quick Start
 
 1. Copy `.env.example` to `.env` and fill required values.
-2. Run:
+2. Create a self-signed cert for HAProxy:
+
+```bash
+mkdir -p infra/haproxy/certs
+openssl req -x509 -nodes -newkey rsa:2048 \
+  -keyout infra/haproxy/certs/ytm.key \
+  -out infra/haproxy/certs/ytm.crt \
+  -days 365 \
+  -subj "/CN=ytm.blueowlsystems.com"
+cat infra/haproxy/certs/ytm.key infra/haproxy/certs/ytm.crt > infra/haproxy/certs/ytm.pem
+```
+
+3. For domain-based OAuth, set:
+- `NEXT_PUBLIC_APP_URL=https://ytm.blueowlsystems.com`
+- `GOOGLE_REDIRECT_URI=https://ytm.blueowlsystems.com/api/auth/google/callback`
+
+4. Run:
 
 ```bash
 docker compose up --build
 ```
 
-3. Open `http://localhost:3000/setup`.
-4. Sign in with Google, add creators/rules, then run manual sync from dashboard.
+5. Open `https://ytm.blueowlsystems.com/setup`.
+6. Sign in with Google, add creators/rules, then run manual sync from dashboard.
 
 ## Scripts
 

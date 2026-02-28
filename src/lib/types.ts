@@ -23,6 +23,13 @@ export type TopicRuleDto = {
   creatorScopeIds: string[];
 };
 
+export type SubscriptionChannelDto = {
+  channelId: string;
+  title: string;
+  thumbnailUrl: string | null;
+  alreadyAdded: boolean;
+};
+
 export type SyncRunDto = {
   id: string;
   trigger: SyncTrigger;

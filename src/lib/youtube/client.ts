@@ -60,6 +60,23 @@ type PlaylistItemInsertResponse = {
   id: string;
 };
 
+type SubscriptionsListResponse = {
+  nextPageToken?: string;
+  items?: Array<{
+    snippet?: {
+      title?: string;
+      resourceId?: {
+        channelId?: string;
+      };
+      thumbnails?: {
+        default?: { url?: string };
+        medium?: { url?: string };
+        high?: { url?: string };
+      };
+    };
+  }>;
+};
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const payload = (await response.json()) as T & YouTubeErrorPayload;
   if (!response.ok) {
@@ -284,5 +301,45 @@ export class YouTubeClient {
       },
     );
     return { itemId: response.id };
+  }
+
+  async listSubscriptions(pageToken?: string): Promise<{
+    nextPageToken?: string;
+    items: Array<{
+      channelId: string;
+      title: string;
+      thumbnailUrl: string | null;
+    }>;
+  }> {
+    const response = await this.request<SubscriptionsListResponse>("/subscriptions", {
+      method: "GET",
+      query: {
+        part: "snippet",
+        mine: "true",
+        maxResults: 50,
+        pageToken,
+      },
+    });
+
+    const items =
+      response.items
+        ?.map((item) => {
+          const snippet = item.snippet;
+          return {
+            channelId: snippet?.resourceId?.channelId ?? "",
+            title: snippet?.title ?? "",
+            thumbnailUrl:
+              snippet?.thumbnails?.high?.url ??
+              snippet?.thumbnails?.medium?.url ??
+              snippet?.thumbnails?.default?.url ??
+              null,
+          };
+        })
+        .filter((item) => item.channelId && item.title) ?? [];
+
+    return {
+      nextPageToken: response.nextPageToken,
+      items,
+    };
   }
 }

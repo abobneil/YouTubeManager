@@ -12,6 +12,15 @@ export const creatorUpdateSchema = z.object({
   active: z.boolean().optional(),
 });
 
+export const creatorImportSubscriptionsSchema = z.object({
+  channelIds: z
+    .array(z.string().regex(/^UC[a-zA-Z0-9_-]{22}$/))
+    .min(1)
+    .max(200)
+    .transform((items) => [...new Set(items)]),
+  active: z.boolean().optional().default(true),
+});
+
 const keywordSchema = z
   .array(z.string().min(1))
   .min(1)

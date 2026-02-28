@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Source_Code_Pro } from "next/font/google";
+import { JetBrains_Mono, Roboto } from "next/font/google";
 import "./globals.css";
 
-const appSans = Space_Grotesk({
+const appSans = Roboto({
   variable: "--font-app-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
 });
 
-const appMono = Source_Code_Pro({
+const appMono = JetBrains_Mono({
   variable: "--font-app-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {

@@ -1,19 +1,19 @@
 :root {
-  --bg-0: #f8f6ed;
-  --bg-1: #ece4d4;
-  --bg-2: #d5c2a1;
-  --ink: #2d2418;
-  --ink-soft: #64553f;
-  --surface: #fff8ea;
-  --surface-strong: #fffef9;
-  --accent: #c45d32;
-  --accent-dark: #9e3f1d;
-  --ok: #2f7a4d;
-  --warn: #c16a1f;
-  --error: #b63e38;
-  --ring: #f0c693;
+  --bg-0: #080f18;
+  --bg-1: #101b2b;
+  --bg-2: #17293f;
+  --ink: #edf2f9;
+  --ink-soft: #a5b4c8;
+  --surface: #111e2e;
+  --surface-strong: #1a2a3f;
+  --accent: #ff7a45;
+  --accent-dark: #d95d2f;
+  --ok: #49c97b;
+  --warn: #f3ba4d;
+  --error: #ff6b6b;
+  --ring: #344f72;
   --radius: 14px;
-  --shadow: 0 18px 44px rgba(93, 68, 41, 0.17);
+  --shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
 }
 
 * {
@@ -27,14 +27,18 @@ body {
   min-height: 100%;
 }
 
+html {
+  color-scheme: dark;
+}
+
 body {
   color: var(--ink);
   background:
-    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.7), transparent 32%),
-    radial-gradient(circle at 90% 10%, rgba(255, 219, 173, 0.75), transparent 42%),
+    radial-gradient(circle at 12% 18%, rgba(39, 65, 96, 0.6), transparent 34%),
+    radial-gradient(circle at 90% 10%, rgba(62, 94, 136, 0.5), transparent 44%),
     linear-gradient(150deg, var(--bg-0), var(--bg-1) 60%, var(--bg-2));
   font-family: var(--font-app-sans), sans-serif;
-  line-height: 1.45;
+  line-height: 1.55;
   font-size: 16px;
 }
 
@@ -62,7 +66,7 @@ textarea {
 
 .panel {
   background: linear-gradient(180deg, var(--surface-strong), var(--surface));
-  border: 1px solid rgba(96, 65, 39, 0.16);
+  border: 1px solid rgba(122, 153, 192, 0.23);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
@@ -94,7 +98,7 @@ textarea {
 
 .site-nav a {
   padding: 8px 12px;
-  border: 1px solid rgba(103, 70, 40, 0.2);
+  border: 1px solid rgba(127, 159, 198, 0.28);
   border-radius: 10px;
   font-size: 0.9rem;
   transition: transform 0.18s ease, background-color 0.18s ease;
@@ -102,7 +106,7 @@ textarea {
 
 .site-nav a:hover {
   transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .main-grid {
@@ -142,8 +146,9 @@ textarea {
 .input,
 .select,
 .textarea {
-  border: 1px solid rgba(90, 61, 35, 0.27);
-  background: rgba(255, 255, 255, 0.74);
+  color: var(--ink);
+  border: 1px solid rgba(122, 153, 192, 0.33);
+  background: rgba(9, 19, 31, 0.76);
   border-radius: 10px;
   padding: 10px 12px;
 }
@@ -175,13 +180,15 @@ textarea {
 }
 
 .button-ghost {
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(95, 65, 39, 0.2);
+  color: var(--ink);
+  background: rgba(10, 20, 34, 0.68);
+  border: 1px solid rgba(122, 153, 192, 0.28);
 }
 
 .button-danger {
-  background: #fbe2df;
-  border: 1px solid #d1796f;
+  color: #ffd4d4;
+  background: rgba(107, 35, 35, 0.5);
+  border: 1px solid rgba(227, 98, 98, 0.65);
 }
 
 .row {
@@ -198,10 +205,10 @@ textarea {
 }
 
 .stat {
-  border: 1px solid rgba(93, 65, 38, 0.18);
+  border: 1px solid rgba(122, 153, 192, 0.26);
   border-radius: 12px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(10, 20, 34, 0.58);
 }
 
 .stat-label {
@@ -216,7 +223,7 @@ textarea {
 
 .table-wrap {
   overflow-x: auto;
-  border: 1px solid rgba(89, 60, 37, 0.18);
+  border: 1px solid rgba(122, 153, 192, 0.24);
   border-radius: 10px;
 }
 
@@ -230,14 +237,14 @@ th,
 td {
   padding: 10px;
   text-align: left;
-  border-bottom: 1px solid rgba(89, 60, 37, 0.12);
+  border-bottom: 1px solid rgba(122, 153, 192, 0.16);
   vertical-align: top;
 }
 
 th {
   font-weight: 700;
   color: var(--ink-soft);
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(12, 24, 39, 0.78);
 }
 
 .pill {

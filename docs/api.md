@@ -23,6 +23,13 @@ All endpoints return JSON. Except health/setup/auth redirects, all authenticated
 - `PATCH /api/creators/:id`
   - Body: partial `{ displayName?: string, active?: boolean }`
 - `DELETE /api/creators/:id`
+- `GET /api/creators/subscriptions`
+  - Returns paginated pull of your current YouTube subscriptions (deduped and annotated with `alreadyAdded`).
+- `POST /api/creators/import`
+  - Body:
+    - `channelIds: string[]` (`UC...` IDs, max 200 per request)
+    - `active?: boolean` (default `true`)
+  - Imports selected subscribed channels as creators and returns `imported`, `skipped`, and `failed` entries.
 
 ## Topic Rules
 

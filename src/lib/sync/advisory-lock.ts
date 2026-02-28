@@ -2,7 +2,14 @@ import { Pool, PoolClient } from "pg";
 import { env } from "@/lib/config";
 
 const LOCK_ID = 7_240_991;
-const pool = new Pool({ connectionString: env.DATABASE_URL });
+let pool: Pool | null = null;
+
+function getPool(): Pool {
+  if (!pool) {
+    pool = new Pool({ connectionString: env.DATABASE_URL });
+  }
+  return pool;
+}
 
 export type LockHandle = {
   client: PoolClient;
@@ -10,7 +17,7 @@ export type LockHandle = {
 };
 
 export async function acquireSyncLock(): Promise<LockHandle> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   const result = await client.query<{ acquired: boolean }>(
     "SELECT pg_try_advisory_lock($1) AS acquired",
     [LOCK_ID],

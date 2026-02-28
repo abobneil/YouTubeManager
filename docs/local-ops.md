@@ -12,18 +12,33 @@
 2. Set:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
-   - `GOOGLE_REDIRECT_URI` (must match OAuth client, usually `http://localhost:3000/api/auth/google/callback`)
+   - `GOOGLE_REDIRECT_URI` (must match OAuth client)
    - `SESSION_SECRET` (>= 32 chars)
    - `ENCRYPTION_KEY_HEX` (64 hex chars)
+3. For HTTPS with a domain, set:
+   - `NEXT_PUBLIC_APP_URL=https://ytm.blueowlsystems.com`
+   - `GOOGLE_REDIRECT_URI=https://ytm.blueowlsystems.com/api/auth/google/callback`
 
 ## 3) Start stack
+
+Create TLS files before starting:
+
+```bash
+mkdir -p infra/haproxy/certs
+openssl req -x509 -nodes -newkey rsa:2048 \
+  -keyout infra/haproxy/certs/ytm.key \
+  -out infra/haproxy/certs/ytm.crt \
+  -days 365 \
+  -subj "/CN=ytm.blueowlsystems.com"
+cat infra/haproxy/certs/ytm.key infra/haproxy/certs/ytm.crt > infra/haproxy/certs/ytm.pem
+```
 
 ```bash
 docker compose up --build
 ```
 
 Services:
-- App UI/API: `http://localhost:3000`
+- App UI/API via HAProxy: `https://ytm.blueowlsystems.com` (port 443)
 - Postgres: `localhost:5432`
 
 ## 4) First-use flow

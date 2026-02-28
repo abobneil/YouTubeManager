@@ -30,8 +30,8 @@ services:
       - .env
     environment:
       NODE_ENV: production
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     command: sh -c "npm run prisma:deploy && npm run prisma:seed && npm run build && npm run start"
     healthcheck:
       test:
@@ -42,6 +42,20 @@ services:
       interval: 20s
       timeout: 5s
       retries: 5
+
+  haproxy:
+    image: haproxy:2.9-alpine
+    container_name: ytm_haproxy
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./infra/haproxy/certs:/usr/local/etc/haproxy/certs:ro
 
   worker:
     build:

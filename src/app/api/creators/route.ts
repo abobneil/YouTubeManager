@@ -5,6 +5,7 @@ import { parseChannelInput } from "@/lib/channel";
 import { prisma } from "@/lib/db";
 import { HttpError } from "@/lib/errors";
 import { errorResponse, parseJson } from "@/lib/http";
+import { requireAllowedMutationOrigin } from "@/lib/security";
 import { toCreatorDto } from "@/lib/serializers";
 import { getValidAccessToken } from "@/lib/token-store";
 import { creatorCreateSchema } from "@/lib/validators";
@@ -22,6 +23,10 @@ export async function GET(): Promise<NextResponse> {
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
+  const originResponse = requireAllowedMutationOrigin(request);
+  if (originResponse) {
+    return originResponse;
+  }
   const ownerId = await requireOwnerSession();
   if (ownerId instanceof NextResponse) {
     return ownerId;

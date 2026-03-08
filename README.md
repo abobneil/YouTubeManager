@@ -7,6 +7,7 @@ Self-hosted TypeScript web app for a single owner account that:
 - Creates/manages YouTube playlists per rule
 - Runs sync every 6 hours in a background worker
 - Supports manual sync queueing from the dashboard
+- Adds owner binding, proxy authentication, and same-origin mutation protection
 
 ## Stack
 
@@ -18,7 +19,20 @@ Self-hosted TypeScript web app for a single owner account that:
 ## Quick Start
 
 1. Copy `.env.example` to `.env` and fill required values.
-2. Create a self-signed cert for HAProxy:
+2. Set the hardened deployment controls:
+   - `OWNER_GOOGLE_EMAIL_ALLOWLIST`
+   - `EDGE_SHARED_SECRET`
+   - `TRUSTED_CLIENT_CIDRS`
+   - `HAPROXY_BASIC_AUTH_USER`
+   - `HAPROXY_BASIC_AUTH_PASSWORD_BCRYPT`
+   - `ALLOWED_MUTATION_ORIGINS`
+3. Generate a bcrypt password hash for HAProxy basic auth:
+
+```bash
+docker run --rm httpd:2.4-alpine htpasswd -nbBC 12 ytm-admin 'change-me' | sed -e 's/^[^:]*://'
+```
+
+4. Create a self-signed cert for HAProxy:
 
 ```bash
 mkdir -p infra/haproxy/certs
@@ -30,23 +44,25 @@ openssl req -x509 -nodes -newkey rsa:2048 \
 cat infra/haproxy/certs/ytm.key infra/haproxy/certs/ytm.crt > infra/haproxy/certs/ytm.pem
 ```
 
-3. For domain-based OAuth, set:
+5. For domain-based OAuth, set:
 - `NEXT_PUBLIC_APP_URL=https://your-domain.example`
 - `GOOGLE_REDIRECT_URI=https://your-domain.example/api/auth/google/callback`
+- `ALLOWED_MUTATION_ORIGINS=https://your-domain.example`
 
-4. Run:
+6. Run:
 
 ```bash
 docker compose up --build
 ```
 
-5. Open `https://your-domain.example/setup`.
-6. Sign in with Google, add creators/rules, then run manual sync from dashboard.
+7. Open `https://your-domain.example/setup`.
+8. Sign in with the allowlisted Google account, add creators/rules, then run manual sync from dashboard.
 
 ## Scripts
 
 - `npm run dev` - Next.js dev server
 - `npm run worker` - background worker process
+- `npm run validate:runtime` - validate hardened production env settings
 - `npm run prisma:migrate` - local migration creation/apply
 - `npm run prisma:deploy` - apply committed migrations
 - `npm run prisma:seed` - seed app settings

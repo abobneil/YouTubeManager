@@ -5,8 +5,8 @@ All endpoints return JSON. Except health/setup/auth redirects, all authenticated
 ## Auth
 
 - `GET /api/auth/google/start`: Starts Google OAuth flow and redirects to Google.
-- `GET /api/auth/google/callback`: Completes OAuth flow, stores tokens, sets owner session, redirects to `/dashboard`.
-- `POST /api/auth/logout`: Clears owner session.
+- `GET /api/auth/google/callback`: Completes OAuth flow, only allows first-time enrollment for an allowlisted verified email, then only allows the bound Google subject on later logins.
+- `POST /api/auth/logout`: Clears owner session. Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 
 ## Owner
 
@@ -20,9 +20,12 @@ All endpoints return JSON. Except health/setup/auth redirects, all authenticated
     - `input: string` (channel URL, `@handle`, or `UC...` ID)
     - `displayName?: string`
     - `active?: boolean`
+  - Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 - `PATCH /api/creators/:id`
   - Body: partial `{ displayName?: string, active?: boolean }`
+  - Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 - `DELETE /api/creators/:id`
+  - Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 - `GET /api/creators/subscriptions`
   - Returns paginated pull of your current YouTube subscriptions (deduped and annotated with `alreadyAdded`).
 - `POST /api/creators/import`
@@ -30,6 +33,7 @@ All endpoints return JSON. Except health/setup/auth redirects, all authenticated
     - `channelIds: string[]` (`UC...` IDs, max 200 per request)
     - `active?: boolean` (default `true`)
   - Imports selected subscribed channels as creators and returns `imported`, `skipped`, and `failed` entries.
+  - Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 
 ## Topic Rules
 
@@ -45,12 +49,15 @@ All endpoints return JSON. Except health/setup/auth redirects, all authenticated
     - `privacyStatus?: PRIVATE | UNLISTED`
     - `active?: boolean`
     - `creatorScopeIds?: string[]`
+  - Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 - `PATCH /api/rules/:id`: Partial update with same fields as create.
+- Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 - `DELETE /api/rules/:id`
+- Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 
 ## Sync
 
-- `POST /api/sync/manual`: Enqueue a manual sync request.
+- `POST /api/sync/manual`: Enqueue a manual sync request. Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 - `GET /api/sync/runs`: Returns latest sync runs.
 - `GET /api/sync/runs/:id`: Returns one sync run with ordered event list.
 

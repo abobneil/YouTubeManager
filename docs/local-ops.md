@@ -15,9 +15,22 @@
    - `GOOGLE_REDIRECT_URI` (must match OAuth client)
    - `SESSION_SECRET` (>= 32 chars)
    - `ENCRYPTION_KEY_HEX` (64 hex chars)
+   - `OWNER_GOOGLE_EMAIL_ALLOWLIST`
+   - `EDGE_SHARED_SECRET` (>= 32 chars)
+   - `TRUSTED_CLIENT_CIDRS`
+   - `HAPROXY_BASIC_AUTH_USER`
+   - `HAPROXY_BASIC_AUTH_PASSWORD_BCRYPT`
+   - `ALLOWED_MUTATION_ORIGINS`
 3. For HTTPS with a domain, set:
    - `NEXT_PUBLIC_APP_URL=https://your-domain.example`
    - `GOOGLE_REDIRECT_URI=https://your-domain.example/api/auth/google/callback`
+   - `ALLOWED_MUTATION_ORIGINS=https://your-domain.example`
+
+Generate the HAProxy basic-auth bcrypt hash with:
+
+```bash
+docker run --rm httpd:2.4-alpine htpasswd -nbBC 12 ytm-admin 'change-me' | sed -e 's/^[^:]*://'
+```
 
 ## 3) Start stack
 
@@ -44,7 +57,7 @@ Services:
 ## 4) First-use flow
 
 1. Open `/setup`.
-2. Sign in with Google.
+2. Sign in with the allowlisted Google account.
 3. Add creators on `/creators`.
 4. Add keyword rules on `/rules`.
 5. Trigger manual sync on `/dashboard`.
@@ -64,3 +77,5 @@ Worker in a separate shell:
 ```bash
 npm run worker
 ```
+
+The local Node flow is for development only. The hardened deployment path is Docker Compose behind HAProxy.

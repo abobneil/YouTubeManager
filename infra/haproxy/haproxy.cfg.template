@@ -1,0 +1,45 @@
+global
+    log stdout format raw local0
+    maxconn 4096
+
+defaults
+    mode http
+    log global
+    option httplog
+    option dontlognull
+    option forwardfor
+    timeout connect 5s
+    timeout client 60s
+    timeout server 60s
+
+userlist app_users
+    user ${HAPROXY_BASIC_AUTH_USER} password ${HAPROXY_BASIC_AUTH_PASSWORD_BCRYPT}
+
+frontend http_in
+    bind *:80
+    acl trusted_network src -f /tmp/trusted_cidrs.acl
+    http-request deny deny_status 403 unless trusted_network
+    http-request redirect scheme https code 301
+
+frontend https_in
+    bind *:443 ssl crt /usr/local/etc/haproxy/certs/ytm.pem
+    acl trusted_network src -f /tmp/trusted_cidrs.acl
+    acl health_path path -i /api/health
+    acl authenticated http_auth(app_users)
+    http-request deny deny_status 403 if health_path !trusted_network
+    http-request deny deny_status 403 unless trusted_network
+    http-request auth realm YTM if !authenticated !health_path
+    http-request del-header X-Edge-Auth
+    http-request set-header X-Edge-Auth ${EDGE_SHARED_SECRET}
+    http-request set-header X-Forwarded-Proto https
+    http-request set-header X-Forwarded-Port 443
+    http-response set-header Strict-Transport-Security "max-age=31536000"
+    http-response set-header X-Frame-Options "DENY"
+    http-response set-header X-Content-Type-Options "nosniff"
+    http-response set-header Referrer-Policy "no-referrer"
+    default_backend web_backend
+
+backend web_backend
+    option httpchk GET /api/health
+    http-check expect status 200
+    server web web:3000 check

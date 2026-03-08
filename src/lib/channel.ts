@@ -1,6 +1,16 @@
 const CHANNEL_ID_PATTERN = /^UC[a-zA-Z0-9_-]{22}$/;
 const HANDLE_PATTERN = /^@[a-zA-Z0-9._-]{3,30}$/;
 
+function isAllowedYouTubeHost(hostname: string): boolean {
+  const normalized = hostname.toLowerCase();
+  return (
+    normalized === "youtube.com" ||
+    normalized === "youtu.be" ||
+    normalized.endsWith(".youtube.com") ||
+    normalized.endsWith(".youtu.be")
+  );
+}
+
 export type ChannelLookup =
   | { type: "channelId"; value: string }
   | { type: "handle"; value: string };
@@ -17,7 +27,7 @@ export function parseChannelInput(input: string): ChannelLookup {
 
   try {
     const url = new URL(trimmed);
-    if (!url.hostname.includes("youtube.com") && !url.hostname.includes("youtu.be")) {
+    if (!isAllowedYouTubeHost(url.hostname)) {
       throw new Error("Not a YouTube URL");
     }
     const parts = url.pathname.split("/").filter(Boolean);

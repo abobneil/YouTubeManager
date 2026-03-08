@@ -54,6 +54,22 @@ All endpoints return JSON. Except health/setup/auth redirects, all authenticated
 - Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 - `DELETE /api/rules/:id`
 - Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
+- `GET /api/rules/:id/review`
+  - Query:
+    - `state?: active | excluded` (default `active`)
+    - `page?: number` (default `1`)
+    - `pageSize?: number` (default `50`, max `100`)
+  - Returns rule review data with managed playlist metadata and paginated review items.
+- `POST /api/rules/:id/review/correct`
+  - Body:
+    - `videoIds: string[]`
+  - Removes the listed videos from the managed playlist and stores them as manual per-rule exclusions.
+  - Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
+- `POST /api/rules/:id/review/restore`
+  - Body:
+    - `videoIds: string[]`
+  - Clears manual exclusions and re-adds the listed videos to the managed playlist.
+  - Cross-origin requests are rejected with `403 ORIGIN_NOT_ALLOWED`.
 
 ## Sync
 

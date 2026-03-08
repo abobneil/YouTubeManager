@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { MatchFields, OrderMode, PrivacyStatus } from "@prisma/client";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { CreatorDto, TopicRuleDto } from "@/lib/types";
@@ -277,6 +278,9 @@ export default function RulesPage() {
                       <button type="button" className="button button-ghost" onClick={() => toggleActive(rule)}>
                         {rule.active ? "Pause" : "Activate"}
                       </button>
+                      <Link href={`/review?ruleId=${rule.id}`} className="button button-ghost">
+                        Review
+                      </Link>
                       <button type="button" className="button button-danger" onClick={() => deleteRule(rule.id)}>
                         Delete
                       </button>

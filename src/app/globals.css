@@ -158,6 +158,9 @@ textarea {
 }
 
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   border-radius: 10px;
   padding: 10px 14px;
@@ -295,6 +298,39 @@ th {
   font-weight: 600;
 }
 
+.review-header {
+  justify-content: space-between;
+}
+
+.review-video {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 260px;
+}
+
+.review-thumb-wrap {
+  flex: 0 0 auto;
+}
+
+.review-thumb {
+  width: 120px;
+  height: 68px;
+  border-radius: 10px;
+  background: rgba(10, 20, 34, 0.78);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  border: 1px solid rgba(122, 153, 192, 0.2);
+}
+
+.review-thumb-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     padding: 16px 10px 24px;
@@ -306,5 +342,14 @@ th {
 
   .page-card {
     padding: 14px;
+  }
+
+  .review-video {
+    min-width: 220px;
+  }
+
+  .review-thumb {
+    width: 96px;
+    height: 54px;
   }
 }

@@ -32,19 +32,11 @@ Generate the HAProxy basic-auth bcrypt hash with:
 docker run --rm httpd:2.4-alpine htpasswd -nbBC 12 ytm-admin 'change-me' | sed -e 's/^[^:]*://'
 ```
 
+When placing the bcrypt hash in `.env`, escape each `$` as `$$` so Docker Compose preserves it correctly.
+
 ## 3) Start stack
 
-Create TLS files before starting:
-
-```bash
-mkdir -p infra/haproxy/certs
-openssl req -x509 -nodes -newkey rsa:2048 \
-  -keyout infra/haproxy/certs/ytm.key \
-  -out infra/haproxy/certs/ytm.crt \
-  -days 365 \
-  -subj "/CN=your-domain.example"
-cat infra/haproxy/certs/ytm.key infra/haproxy/certs/ytm.crt > infra/haproxy/certs/ytm.pem
-```
+On the first `docker compose up`, the `cert-init` service creates `infra/haproxy/certs/ytm.pem` automatically if it is missing. The certificate common name is derived from `NEXT_PUBLIC_APP_URL`.
 
 ```bash
 docker compose up --build

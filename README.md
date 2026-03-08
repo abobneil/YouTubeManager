@@ -32,17 +32,9 @@ Self-hosted TypeScript web app for a single owner account that:
 docker run --rm httpd:2.4-alpine htpasswd -nbBC 12 ytm-admin 'change-me' | sed -e 's/^[^:]*://'
 ```
 
-4. Create a self-signed cert for HAProxy:
+When storing the bcrypt hash in `.env` for Docker Compose, escape each `$` as `$$`.
 
-```bash
-mkdir -p infra/haproxy/certs
-openssl req -x509 -nodes -newkey rsa:2048 \
-  -keyout infra/haproxy/certs/ytm.key \
-  -out infra/haproxy/certs/ytm.crt \
-  -days 365 \
-  -subj "/CN=your-domain.example"
-cat infra/haproxy/certs/ytm.key infra/haproxy/certs/ytm.crt > infra/haproxy/certs/ytm.pem
-```
+4. On first `docker compose up`, the `cert-init` service generates a self-signed TLS cert automatically if `infra/haproxy/certs/ytm.pem` does not exist.
 
 5. For domain-based OAuth, set:
 - `NEXT_PUBLIC_APP_URL=https://your-domain.example`

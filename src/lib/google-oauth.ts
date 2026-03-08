@@ -12,6 +12,7 @@ type TokenResponse = {
 export type GoogleProfile = {
   sub: string;
   email: string;
+  email_verified: boolean;
   name?: string;
   picture?: string;
 };
@@ -68,7 +69,7 @@ export async function getGoogleProfile(accessToken: string): Promise<GoogleProfi
   }
 
   const profile = (await response.json()) as GoogleProfile;
-  if (!profile.sub || !profile.email) {
+  if (!profile.sub || !profile.email || typeof profile.email_verified !== "boolean") {
     throw new HttpError(400, "GOOGLE_PROFILE_INVALID", "Google profile missing required fields");
   }
   return profile;

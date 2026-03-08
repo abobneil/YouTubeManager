@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/config";
+import { withNoStore } from "@/lib/security";
 import { createOauthState, setOauthStateCookie } from "@/lib/session";
 
 export async function GET(): Promise<NextResponse> {
@@ -16,5 +17,5 @@ export async function GET(): Promise<NextResponse> {
   url.searchParams.set("prompt", "consent");
   url.searchParams.set("state", state);
 
-  return NextResponse.redirect(url);
+  return withNoStore(NextResponse.redirect(url));
 }

@@ -50,6 +50,8 @@ services:
     container_name: ytm_haproxy
     restart: unless-stopped
     depends_on:
+      cert-init:
+        condition: service_completed_successfully
       web:
         condition: service_healthy
     env_file:
@@ -59,6 +61,26 @@ services:
       - "443:443"
     volumes:
       - ./infra/haproxy/certs:/usr/local/etc/haproxy/certs:ro
+
+  cert-init:
+    image: alpine:3.21
+    container_name: ytm_cert_init
+    restart: "no"
+    env_file:
+      - .env
+    volumes:
+      - ./infra/haproxy/certs:/certs
+    command:
+      - sh
+      - -c
+      - >
+        apk add --no-cache openssl >/dev/null &&
+        mkdir -p /certs &&
+        CERT_CN=$$(printf '%s' "$$NEXT_PUBLIC_APP_URL" | sed -E 's#^https?://([^/:]+).*$#\1#') &&
+        if [ ! -f /certs/ytm.pem ]; then
+          openssl req -x509 -nodes -newkey rsa:2048 -keyout /certs/ytm.key -out /certs/ytm.crt -days 365 -subj "/CN=$${CERT_CN:-localhost}" &&
+          cat /certs/ytm.key /certs/ytm.crt > /certs/ytm.pem;
+        fi
 
   worker:
     build:

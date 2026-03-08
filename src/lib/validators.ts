@@ -59,3 +59,18 @@ export const topicRuleUpdateSchema = z.object({
 export const syncManualSchema = z.object({
   trigger: z.literal("MANUAL").optional(),
 });
+
+const reviewVideoIdsSchema = z
+  .array(z.string().min(1))
+  .min(1)
+  .transform((items) => [...new Set(items)]);
+
+export const ruleReviewMutationSchema = z.object({
+  videoIds: reviewVideoIdsSchema,
+});
+
+export const ruleReviewQuerySchema = z.object({
+  state: z.enum(["active", "excluded"]).default("active"),
+  page: z.coerce.number().int().positive().default(1),
+  pageSize: z.coerce.number().int().positive().max(100).default(50),
+});

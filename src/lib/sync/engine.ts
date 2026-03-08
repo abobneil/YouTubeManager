@@ -419,6 +419,7 @@ export async function runSync(trigger: SyncTrigger, requestId?: string): Promise
             update: {
               title: video.title,
               description: video.description,
+              thumbnailUrl: video.thumbnailUrl,
               publishedAt: new Date(video.publishedAt),
               channelId: video.channelId,
               channelTitle: video.channelTitle,
@@ -428,6 +429,7 @@ export async function runSync(trigger: SyncTrigger, requestId?: string): Promise
               id: video.id,
               title: video.title,
               description: video.description,
+              thumbnailUrl: video.thumbnailUrl,
               publishedAt: new Date(video.publishedAt),
               channelId: video.channelId,
               channelTitle: video.channelTitle,
@@ -500,6 +502,7 @@ export async function runSync(trigger: SyncTrigger, requestId?: string): Promise
           const existingMemberships = await prisma.playlistMembership.findMany({
             where: {
               ruleId,
+              removedAt: null,
               videoId: {
                 in: matchedVideos.map((video) => video.id),
               },
@@ -507,7 +510,19 @@ export async function runSync(trigger: SyncTrigger, requestId?: string): Promise
             select: { videoId: true },
           });
           const existingVideoIds = new Set(existingMemberships.map((item) => item.videoId));
-          const filtered = matchedVideos.filter((video) => !existingVideoIds.has(video.id));
+          const excludedVideos = await prisma.ruleVideoExclusion.findMany({
+            where: {
+              ruleId,
+              videoId: {
+                in: matchedVideos.map((video) => video.id),
+              },
+            },
+            select: { videoId: true },
+          });
+          const excludedVideoIds = new Set(excludedVideos.map((item) => item.videoId));
+          const filtered = matchedVideos.filter(
+            (video) => !existingVideoIds.has(video.id) && !excludedVideoIds.has(video.id),
+          );
           if (filtered.length === 0) {
             continue;
           }
@@ -539,8 +554,20 @@ export async function runSync(trigger: SyncTrigger, requestId?: string): Promise
               const inserted = await client.addPlaylistItem(playlist.playlistId, candidate.id, position);
               state.quotaConsumed += QUOTA_COST.playlistItemsInsert;
               state.stats.playlistItemsInserted += 1;
-              await prisma.playlistMembership.create({
-                data: {
+              await prisma.playlistMembership.upsert({
+                where: {
+                  ruleId_videoId: { ruleId, videoId: candidate.id },
+                },
+                update: {
+                  runId: run.id,
+                  status: MembershipStatus.INSERTED,
+                  youtubePlaylistItemId: inserted.itemId,
+                  errorCode: null,
+                  removedAt: null,
+                  removalReason: null,
+                  attemptedAt: new Date(),
+                },
+                create: {
                   ruleId,
                   videoId: candidate.id,
                   runId: run.id,
@@ -559,6 +586,8 @@ export async function runSync(trigger: SyncTrigger, requestId?: string): Promise
                     runId: run.id,
                     status: MembershipStatus.DUPLICATE,
                     errorCode: "videoAlreadyInPlaylist",
+                    removedAt: null,
+                    removalReason: null,
                     attemptedAt: new Date(),
                   },
                   create: {
@@ -581,8 +610,20 @@ export async function runSync(trigger: SyncTrigger, requestId?: string): Promise
                   const fallback = await client.addPlaylistItem(playlist.playlistId, candidate.id);
                   state.quotaConsumed += QUOTA_COST.playlistItemsInsert;
                   state.stats.playlistItemsInserted += 1;
-                  await prisma.playlistMembership.create({
-                    data: {
+                  await prisma.playlistMembership.upsert({
+                    where: {
+                      ruleId_videoId: { ruleId, videoId: candidate.id },
+                    },
+                    update: {
+                      runId: run.id,
+                      status: MembershipStatus.INSERTED,
+                      youtubePlaylistItemId: fallback.itemId,
+                      errorCode: "manualSortRequired",
+                      removedAt: null,
+                      removalReason: null,
+                      attemptedAt: new Date(),
+                    },
+                    create: {
                       ruleId,
                       videoId: candidate.id,
                       runId: run.id,
@@ -626,6 +667,8 @@ export async function runSync(trigger: SyncTrigger, requestId?: string): Promise
                   runId: run.id,
                   status: MembershipStatus.ERROR,
                   errorCode: error instanceof YouTubeApiError ? error.reason : "unknown",
+                  removedAt: null,
+                  removalReason: null,
                   attemptedAt: new Date(),
                 },
                 create: {

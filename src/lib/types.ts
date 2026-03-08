@@ -23,6 +23,39 @@ export type TopicRuleDto = {
   creatorScopeIds: string[];
 };
 
+export type ManagedPlaylistDto = {
+  id: string;
+  youtubePlaylistId: string;
+  title: string;
+  privacyStatus: PrivacyStatus;
+};
+
+export type RuleReviewState = "active" | "excluded";
+
+export type RuleReviewItemDto = {
+  videoId: string;
+  title: string;
+  channelTitle: string;
+  publishedAt: string;
+  thumbnailUrl: string | null;
+  matchedAt: string | null;
+  membershipStatus: string | null;
+  youtubePlaylistItemId: string | null;
+  removedAt: string | null;
+  excluded: boolean;
+  videoUrl: string;
+};
+
+export type RuleReviewPageDto = {
+  rule: TopicRuleDto;
+  managedPlaylist: ManagedPlaylistDto | null;
+  state: RuleReviewState;
+  page: number;
+  pageSize: number;
+  total: number;
+  items: RuleReviewItemDto[];
+};
+
 export type SubscriptionChannelDto = {
   channelId: string;
   title: string;

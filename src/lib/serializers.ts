@@ -1,5 +1,5 @@
-import type { Creator, SyncRun, TopicRule } from "@prisma/client";
-import type { CreatorDto, SyncRunDto, TopicRuleDto } from "@/lib/types";
+import type { Creator, ManagedPlaylist, SyncRun, TopicRule } from "@prisma/client";
+import type { CreatorDto, ManagedPlaylistDto, SyncRunDto, TopicRuleDto } from "@/lib/types";
 
 export function toCreatorDto(creator: Creator): CreatorDto {
   return {
@@ -27,6 +27,15 @@ export function toRuleDto(
     privacyStatus: rule.privacyStatus,
     active: rule.active,
     creatorScopeIds: rule.ruleCreators.map((scope) => scope.creatorId),
+  };
+}
+
+export function toManagedPlaylistDto(playlist: ManagedPlaylist): ManagedPlaylistDto {
+  return {
+    id: playlist.id,
+    youtubePlaylistId: playlist.youtubePlaylistId,
+    title: playlist.title,
+    privacyStatus: playlist.privacyStatus,
   };
 }
 

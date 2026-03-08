@@ -32,9 +32,15 @@ type ChannelsListResponse = {
 type PlaylistItemsListResponse = {
   nextPageToken?: string;
   items?: Array<{
+    id?: string;
     contentDetails?: {
       videoId?: string;
       videoPublishedAt?: string;
+    };
+    snippet?: {
+      resourceId?: {
+        videoId?: string;
+      };
     };
   }>;
 };
@@ -48,6 +54,11 @@ type VideosListResponse = {
       channelId: string;
       channelTitle: string;
       publishedAt: string;
+      thumbnails?: {
+        default?: { url?: string };
+        medium?: { url?: string };
+        high?: { url?: string };
+      };
     };
   }>;
 };
@@ -126,6 +137,59 @@ export class YouTubeClient {
           body: init.body,
         });
         return await parseResponse<T>(response);
+      } catch (error) {
+        if (
+          error instanceof YouTubeApiError &&
+          attempts < 4 &&
+          isRetryableStatus(error.status)
+        ) {
+          await sleep(250 * attempts);
+          continue;
+        }
+        throw error;
+      }
+    }
+  }
+
+  private async requestVoid(
+    path: string,
+    init: RequestInit & { query?: Record<string, string | number | undefined> },
+  ): Promise<void> {
+    const url = new URL(`${API_BASE}${path}`);
+    if (init.query) {
+      for (const [key, value] of Object.entries(init.query)) {
+        if (value !== undefined && value !== null) {
+          url.searchParams.set(key, String(value));
+        }
+      }
+    }
+
+    let attempts = 0;
+    while (true) {
+      attempts += 1;
+      try {
+        const response = await fetch(url, {
+          method: init.method,
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+            "Content-Type": "application/json",
+            ...(init.headers ?? {}),
+          },
+          body: init.body,
+        });
+
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => ({}))) as YouTubeErrorPayload;
+          const reason = payload.error?.errors?.[0]?.reason;
+          throw new YouTubeApiError(
+            payload.error?.message ?? "YouTube API request failed",
+            response.status,
+            reason,
+            payload,
+          );
+        }
+
+        return;
       } catch (error) {
         if (
           error instanceof YouTubeApiError &&
@@ -231,6 +295,7 @@ export class YouTubeClient {
       channelId: string;
       channelTitle: string;
       publishedAt: string;
+      thumbnailUrl: string | null;
     }>
   > {
     if (videoIds.length === 0) {
@@ -253,6 +318,11 @@ export class YouTubeClient {
         channelId: item.snippet.channelId,
         channelTitle: item.snippet.channelTitle,
         publishedAt: item.snippet.publishedAt,
+        thumbnailUrl:
+          item.snippet.thumbnails?.high?.url ??
+          item.snippet.thumbnails?.medium?.url ??
+          item.snippet.thumbnails?.default?.url ??
+          null,
       })) ?? []
     );
   }
@@ -301,6 +371,66 @@ export class YouTubeClient {
       },
     );
     return { itemId: response.id };
+  }
+
+  async deletePlaylistItem(playlistItemId: string): Promise<void> {
+    await this.requestVoid("/playlistItems", {
+      method: "DELETE",
+      query: {
+        id: playlistItemId,
+      },
+    });
+  }
+
+  async listPlaylistItems(
+    playlistId: string,
+    pageToken?: string,
+  ): Promise<{
+    nextPageToken?: string;
+    items: Array<{
+      itemId: string;
+      videoId: string;
+    }>;
+  }> {
+    const response = await this.request<PlaylistItemsListResponse>("/playlistItems", {
+      method: "GET",
+      query: {
+        part: "snippet,contentDetails",
+        playlistId,
+        maxResults: 50,
+        pageToken,
+      },
+    });
+
+    const items =
+      response.items
+        ?.map((item) => ({
+          itemId: item.id ?? "",
+          videoId: item.contentDetails?.videoId ?? item.snippet?.resourceId?.videoId ?? "",
+        }))
+        .filter((item) => item.itemId && item.videoId) ?? [];
+
+    return {
+      nextPageToken: response.nextPageToken,
+      items,
+    };
+  }
+
+  async findPlaylistItemIdByVideoId(playlistId: string, videoId: string): Promise<string | null> {
+    let nextPageToken: string | undefined;
+
+    while (true) {
+      const page = await this.listPlaylistItems(playlistId, nextPageToken);
+      const match = page.items.find((item) => item.videoId === videoId);
+      if (match) {
+        return match.itemId;
+      }
+
+      if (!page.nextPageToken) {
+        return null;
+      }
+      nextPageToken = page.nextPageToken;
+    }
   }
 
   async listSubscriptions(pageToken?: string): Promise<{

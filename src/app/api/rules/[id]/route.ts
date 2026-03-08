@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireOwnerSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { errorResponse, parseJson } from "@/lib/http";
+import { requireAllowedMutationOrigin } from "@/lib/security";
 import { toRuleDto } from "@/lib/serializers";
 import { topicRuleUpdateSchema } from "@/lib/validators";
 
@@ -11,6 +12,10 @@ type Params = {
 };
 
 export async function PATCH(request: NextRequest, { params }: Params): Promise<NextResponse> {
+  const originResponse = requireAllowedMutationOrigin(request);
+  if (originResponse) {
+    return originResponse;
+  }
   const ownerId = await requireOwnerSession();
   if (ownerId instanceof NextResponse) {
     return ownerId;
@@ -68,6 +73,10 @@ export async function PATCH(request: NextRequest, { params }: Params): Promise<N
 }
 
 export async function DELETE(_: NextRequest, { params }: Params): Promise<NextResponse> {
+  const originResponse = requireAllowedMutationOrigin(_);
+  if (originResponse) {
+    return originResponse;
+  }
   const ownerId = await requireOwnerSession();
   if (ownerId instanceof NextResponse) {
     return ownerId;

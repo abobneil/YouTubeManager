@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireOwnerSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { withNoStore } from "@/lib/security";
 
 export async function GET(): Promise<NextResponse> {
   const ownerId = await requireOwnerSession();
@@ -18,5 +19,5 @@ export async function GET(): Promise<NextResponse> {
     },
   });
 
-  return NextResponse.json({ owner });
+  return withNoStore(NextResponse.json({ owner }));
 }

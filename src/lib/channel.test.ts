@@ -20,4 +20,13 @@ describe("parseChannelInput", () => {
   it("throws for unsupported inputs", () => {
     expect(() => parseChannelInput("https://example.com/foo")).toThrow();
   });
+
+  it("rejects lookalike YouTube hosts", () => {
+    expect(() =>
+      parseChannelInput("https://notyoutube.com/channel/UC1234567890abcdefABCDEF"),
+    ).toThrow();
+    expect(() =>
+      parseChannelInput("https://youtube.com.evil.example/channel/UC1234567890abcdefABCDEF"),
+    ).toThrow();
+  });
 });

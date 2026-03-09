@@ -20,6 +20,7 @@ Self-hosted TypeScript web app for a single owner account that:
 
 1. Copy `.env.example` to `.env` and fill required values.
 2. Set the hardened deployment controls:
+   - `POSTGRES_PASSWORD`
    - `OWNER_GOOGLE_EMAIL_ALLOWLIST`
    - `EDGE_SHARED_SECRET`
    - `TRUSTED_CLIENT_CIDRS`
@@ -34,7 +35,7 @@ docker run --rm httpd:2.4-alpine htpasswd -nbBC 12 ytm-admin 'change-me' | sed -
 
 When storing the bcrypt hash in `.env` for Docker Compose, escape each `$` as `$$`.
 
-4. On first `docker compose up`, the `cert-init` service generates a self-signed TLS cert automatically if `infra/haproxy/certs/ytm.pem` does not exist.
+4. On first `docker compose up`, the `cert-init` service generates a self-signed TLS cert automatically if `infra/haproxy/certs/ytm.pem` does not exist. Generated cert files are ignored and must never be committed.
 
 5. For domain-based OAuth, set:
 - `NEXT_PUBLIC_APP_URL=https://your-domain.example`
@@ -60,6 +61,7 @@ docker compose up --build
 - `npm run prisma:seed` - seed app settings
 - `npm run test` - run unit tests
 - `npm run lint` - run ESLint
+- `npm run check:secrets` - fail on tracked private keys, certificates, `.env` files, and common leaked-token patterns
 
 ## Docs
 

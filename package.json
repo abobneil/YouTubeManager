@@ -10,6 +10,7 @@
     "worker": "npm run validate:runtime && tsx src/worker/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check:secrets": "node scripts/check-secrets.mjs --all",
     "validate:runtime": "tsx scripts/validate-runtime-config.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

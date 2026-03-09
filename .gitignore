@@ -23,6 +23,12 @@
 # misc
 .DS_Store
 *.pem
+*.crt
+*.key
+*.p12
+*.pfx
+infra/haproxy/certs/*
+!infra/haproxy/certs/.gitkeep
 
 # debug
 npm-debug.log*
@@ -32,6 +38,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel

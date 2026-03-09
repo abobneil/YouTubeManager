@@ -6,3 +6,6 @@ coverage
 README.md
 research.md
 *.log
+infra/haproxy/certs/*.pem
+infra/haproxy/certs/*.crt
+infra/haproxy/certs/*.key

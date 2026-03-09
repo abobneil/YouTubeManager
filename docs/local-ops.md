@@ -10,6 +10,7 @@
 
 1. Copy `.env.example` to `.env`.
 2. Set:
+   - `POSTGRES_PASSWORD`
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
    - `GOOGLE_REDIRECT_URI` (must match OAuth client)
@@ -21,6 +22,7 @@
    - `HAPROXY_BASIC_AUTH_USER`
    - `HAPROXY_BASIC_AUTH_PASSWORD_BCRYPT`
    - `ALLOWED_MUTATION_ORIGINS`
+   - Keep `DATABASE_URL` in sync with `POSTGRES_PASSWORD`
 3. For HTTPS with a domain, set:
    - `NEXT_PUBLIC_APP_URL=https://your-domain.example`
    - `GOOGLE_REDIRECT_URI=https://your-domain.example/api/auth/google/callback`
@@ -36,7 +38,7 @@ When placing the bcrypt hash in `.env`, escape each `$` as `$$` so Docker Compos
 
 ## 3) Start stack
 
-On the first `docker compose up`, the `cert-init` service creates `infra/haproxy/certs/ytm.pem` automatically if it is missing. The certificate common name is derived from `NEXT_PUBLIC_APP_URL`.
+On the first `docker compose up`, the `cert-init` service creates `infra/haproxy/certs/ytm.pem` automatically if it is missing. The certificate common name is derived from `NEXT_PUBLIC_APP_URL`. The generated cert directory is gitignored; do not commit anything under `infra/haproxy/certs/` except `.gitkeep`.
 
 ```bash
 docker compose up --build
@@ -68,6 +70,12 @@ Worker in a separate shell:
 
 ```bash
 npm run worker
+```
+
+Before pushing changes, run:
+
+```bash
+npm run check:secrets
 ```
 
 The local Node flow is for development only. The hardened deployment path is Docker Compose behind HAProxy.
